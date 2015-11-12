@@ -1,0 +1,7 @@
+*.db
+.DS_Store
+.idea
+.vagrant
+venv
+env
+__pycache__
