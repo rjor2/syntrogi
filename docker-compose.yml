@@ -8,6 +8,7 @@ webapp:
     - db:db
   volumes:
     - ./webapp/:/code
+    - ./repos:/repos
   env_file: .env
    # command: /usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid www-data --gid www-data
 
