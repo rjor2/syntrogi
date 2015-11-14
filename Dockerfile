@@ -20,4 +20,12 @@ RUN mkdir /code
 ADD . /code
 WORKDIR /code
 
-# CMD vagrant up
+RUN vagrant up
+
+RUN curl -X GET http://192.168.33.21:8000/repos/
+RUN curl -X POST --data '{"url":"https://github.com/rjor2/melosycn"}' http://192.168.33.21:8000/repos/
+RUN curl -X POST --data '{"url":"https://github.com/rjor2/syntrogi", "branch":"dev"}' http://192.168.33.21:8000/repos/
+RUN curl -X POST --data '{"url":"https://github.com/rjor2/syntrogi", "branch":"dev", "revision":"4b2f362d61f2ea0d8ef1717189943195b19f29a5"}' http://192.168.33.21:8000/repos/
+RUN curl -X GET http://192.168.33.21:8000/repos/
+
+CMD echo "User Test Finished"

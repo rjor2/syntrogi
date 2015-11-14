@@ -74,5 +74,12 @@ Vagrant.configure(2) do |config|
     chmod +x /usr/local/bin/docker-compose
     exit
     # Not sure about sudo -i but thats what it says to do in the docker documentation. Just using exit to get out (ie back to vagrant user)
+
+  SHELL
+
+  config.vm.provision "shell", run: "always", inline: <<-SHELL
+
+    sudo docker-compose -f /vagrant/docker-compose.yml up -d >> /var/log/syntrogi.log
+
   SHELL
 end
