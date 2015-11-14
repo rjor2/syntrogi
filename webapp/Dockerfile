@@ -17,4 +17,7 @@ RUN mkdir /code
 ADD . /code
 WORKDIR /code
 
-CMD python -u manage.py runserver 0.0.0.0:8000
+ENTRYPOINT ["/code/docker-entrypoint.sh"]
+
+CMD echo hello world
+#CMD python -u manage.py runserver 0.0.0.0:8000

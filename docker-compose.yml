@@ -14,7 +14,7 @@ webapp:
 
 server:
   container_name: my-server
-  restart: always
+  # restart: always
   build: ./server/
   ports:
     - "80:80"
@@ -23,10 +23,12 @@ server:
     - webapp
   links:
     - webapp:webapp
+  env_file: .env
 
 db:
   container_name: my-db
-  restart: always
+  # restart: always
   image: postgres:latest
   ports:
     - "5432:5432"
+  env_file: .env
