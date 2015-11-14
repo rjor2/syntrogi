@@ -22,6 +22,8 @@ Vagrant.configure(2) do |config|
   # config.vm.network "forwarded_port", guest: 80, host: 8080
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
+
+  # PUT YOUR DESIRED IP HERE
   config.vm.network "private_network", ip: "192.168.33.21"
 
   # Create a public network, which generally matched to bridged network.
