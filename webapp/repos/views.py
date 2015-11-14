@@ -62,7 +62,6 @@ def repo_detail(request, id):
         return JSONResponse(serializer.data)
 
     elif request.method == 'DELETE':
-        print("gere")
+        repo.remove()
         repo.delete()
-        print("repo deleted")
         return HttpResponse(status=204)

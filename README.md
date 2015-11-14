@@ -61,3 +61,10 @@ curl -X DELETE http://192.168.33.21:8000/repos/58454e97-6afe-4dfd-972d-ae565f5bd
 ```
 
 Better explanation to follow. Should be able to autogen API instructions.
+
+### Note
+You can ssh to the box using
+```
+vagrant ssh
+```
+or the default user:vagrant password:vagrant

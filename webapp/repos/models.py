@@ -1,6 +1,7 @@
 import uuid
 import git
 from django.db import models
+import shutil
 
 # Git Repo Model
 class Repo(models.Model):
@@ -33,3 +34,12 @@ class Repo(models.Model):
         self.revision = r.active_branch.object.hexsha
         self.downloaded = True
         self.save()
+
+    def remove(self):
+        """
+        Remove the source code of the repo
+        :return:
+        """
+        # TODO see if we can use git.Repo to remove this. or run an re over the file name.
+        # r = git.Repo(self.url, '/repos/%s' % self.id)
+        shutil.rmtree("/repos/%s" %self.id)
