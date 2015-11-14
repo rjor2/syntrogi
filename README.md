@@ -3,6 +3,10 @@
 ## Installation
 - Clone this git repo.
 - Edit the Vagrant file. Put whatever ip you want to run on.
+```
+# PUT YOUR DESIRED IP HERE
+config.vm.network "private_network", ip: "xxx.xxx.xx.xx"
+```
 - Run vagrant
 
 This might take a while. It will download everything that is necessary and automatically start the DB / django app and Server.
