@@ -81,7 +81,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision "shell", run: "always", inline: <<-SHELL
 
-    sudo docker-compose -f /vagrant/docker-compose.yml up -d >> /var/log/syntrogi.log
+    sudo docker-compose -f /vagrant/docker-compose.yml up -d
 
   SHELL
 end
