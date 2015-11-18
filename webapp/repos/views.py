@@ -28,11 +28,20 @@ def repo_list(request):
         return JSONResponse(serializer.data)
 
     elif request.method == 'POST':
-        data = JSONParser().parse(request)
+        try:
+            data = JSONParser().parse(request)
+        except:
+            return JSONResponse({'error': 'Invalid JSON'}, status=400)
+
         serializer = RepoSerializer(data=data)
         if serializer.is_valid():
             repo = serializer.create(serializer.validated_data)
-            repo.download()
+
+            try:
+                repo.download()
+            except Exception as e:
+                print("ERROR %s" %e)
+                return JSONResponse({'error': str(e)}, status=400)
 
             # TODO add logger
             print("Created Repo from POST...")

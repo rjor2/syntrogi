@@ -21,14 +21,30 @@ class Repo(models.Model):
         # TODO push off to celery
         # Using Git Python
         # http://gitpython.readthedocs.org/
-        if self.branch:
-            r = git.Repo.clone_from(self.url, '/repos/%s' % (self.id), branch=self.branch)
-        else:
-            # don't want to assume that there is a default branch called master....
-            r = git.Repo.clone_from(self.url, '/repos/%s' % (self.id))
+        try:
+            if self.branch:
+                r = git.Repo.clone_from(self.url, '/repos/%s' % (self.id), branch=self.branch)
+            else:
+                # don't want to assume that there is a default branch called master....
+                r = git.Repo.clone_from(self.url, '/repos/%s' % (self.id))
+        except git.GitCommandError as e:
+            if ("repository" in str(e.stderr) and "not found" in str(e.stderr)) or \
+               "Authentication failed" in str(e.stderr) or  \
+               "could not read Username" in str(e.stderr):
+                raise Exception('Git Repo does not exist or is password protected.')
+            elif "not found in upstream origin" in str(e.stderr):
+                raise Exception('Branch does not exist.')
+            else:
+                raise e
 
         if self.revision:
-            r.head.reset(self.revision)
+            try:
+                r.head.reset(self.revision)
+            except git.GitCommandError as e:
+                if "unknown revision" in str(e.stderr):
+                    raise Exception('Revision does not exist.')
+                else:
+                    raise e
 
         self.branch = r.active_branch.name
         self.revision = r.active_branch.object.hexsha
@@ -42,4 +58,7 @@ class Repo(models.Model):
         """
         # TODO see if we can use git.Repo to remove this. or run an re over the file name.
         # r = git.Repo(self.url, '/repos/%s' % self.id)
-        shutil.rmtree("/repos/%s" %self.id)
+        try:
+            shutil.rmtree("/repos/%s" %self.id)
+        except FileNotFoundError:
+            pass
