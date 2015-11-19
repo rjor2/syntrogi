@@ -1,14 +1,11 @@
 from rest_framework import status
-from rest_framework import mixins
 from rest_framework import generics
 from rest_framework.response import Response
 
 from .models import Repo
 from .serializers import RepoSerializer
 
-class RepoList(mixins.ListModelMixin,
-               mixins.CreateModelMixin,
-               generics.GenericAPIView):
+class RepoList(generics.ListCreateAPIView):
     """
     List all repos, or create a new repo.
     """
@@ -16,17 +13,17 @@ class RepoList(mixins.ListModelMixin,
     queryset = Repo.objects.all()
     serializer_class = RepoSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
     def post(self, request, format=None):
         serializer = RepoSerializer(data=request.data)
+
         if serializer.is_valid():
             repo = serializer.create(serializer.validated_data)
 
             try:
                 repo.download()
             except Exception as e:
+                # Probably should override some self.create method now
+                repo.delete()
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             # TODO add logger
@@ -40,10 +37,7 @@ class RepoList(mixins.ListModelMixin,
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RepoDetail(mixins.RetrieveModelMixin,
-                 mixins.UpdateModelMixin,
-                 mixins.DestroyModelMixin,
-                 generics.GenericAPIView):
+class RepoDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update or delete a code snippet.
     """
@@ -51,9 +45,6 @@ class RepoDetail(mixins.RetrieveModelMixin,
     queryset = Repo.objects.all()
     serializer_class = RepoSerializer#
     lookup_field = 'id'
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, id, format=None):
         # keep old settings.
