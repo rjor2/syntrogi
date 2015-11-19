@@ -118,16 +118,10 @@ class RepoAPITestCase(APITestCase):
     def test_get(self):
         self.test_post()
         repo = Repo.objects.get(name="testrepo")
-        print(repo)
-        print(repo.name)
-        print(repo.branch)
-        print(repo.downloaded)
         url = "/repos/%s/" %repo.id
-        print(url)
         response = self.client.get(url)
         stream = BytesIO(response.content)
         data = JSONParser().parse(stream)
-        print(data)
         self.assertEqual(data['name'], "testrepo")
         self.assertIn('id', data)
         self.assertIn('url', data)

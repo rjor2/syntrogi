@@ -5,6 +5,10 @@ from rest_framework.response import Response
 from .models import Repo
 from .serializers import RepoSerializer
 
+import logging
+
+logger = logging.getLogger('default')
+
 class RepoList(generics.ListCreateAPIView):
     """
     List all repos, or create a new repo.
@@ -26,14 +30,11 @@ class RepoList(generics.ListCreateAPIView):
                 repo.delete()
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-            # TODO add logger
-            print("Created Repo from POST...")
-            print(repo.url)
-            print(repo.branch)
-            print(repo.revision)
+            logger.debug("Created Repo from POST id:%s url:%s branch:%s revision:%s downloaded:%s" \
+                         %(repo.id, repo.url, repo.branch, repo.revision, repo.downloaded))
 
             # If using celery change this to 202
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(RepoSerializer(repo).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

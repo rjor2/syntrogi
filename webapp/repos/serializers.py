@@ -6,5 +6,5 @@ class RepoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repo
         fields = ('id', 'name', 'url', 'branch', 'revision', 'downloaded')
-        read_only_fields = ('id', 'downloaded')
+        read_only_fields = ('id', 'downloaded', 'stats')
 
