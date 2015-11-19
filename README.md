@@ -8,6 +8,9 @@
 config.vm.network "private_network", ip: "xxx.xxx.xx.xx"
 ```
 - Run vagrant
+```
+vagrant up
+```
 
 This might take a while. It will download everything that is necessary and automatically start the DB / django app and Server.
 
@@ -78,9 +81,48 @@ eg
 curl -X PUT --data '{"url":"https://github.com/rjor2/syntrogi", "branch":"master", "revision":"8bf352142817a650b379e818d6c1d00d6528de7c"}' http://192.168.33.21:8000/repos/58454e97-6afe-4dfd-972d-ae565f5bde82/ --header "Content-Type:application/json"
 ```
 
-### Note
+### Notes
+
+#### SSH
 You can ssh to the box using
 ```
 vagrant ssh
 ```
 or the default user:vagrant password:vagrant
+
+#### DOCKER
+After sshing to the box via vagrant of ssh or whatever you some simple docker commands
+
+List all images
+```
+sudo docker images
+```
+
+List all running containers
+```
+sudo docker ps
+```
+
+Stop/start/remove/view-logs containers using Docker-compose (when in the /vagrant directory)
+```
+sudo docker-compose stop
+sudo docker-compose up
+sudo docker-compose rm
+sudo docker-compose logs
+```
+
+"ssh" to docker
+```
+sudo docker exec -it {container-name} bash
+```
+eg
+```
+sudo docker exec -it my-webapp bash
+```
+
+#### TEST
+Once in the docker web-container you can run the test suite by running
+```
+cd /code
+python manage test
+```
