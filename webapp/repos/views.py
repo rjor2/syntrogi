@@ -1,46 +1,34 @@
 from django.http import HttpResponse
+from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Repo
 from .serializers import RepoSerializer
 
 
-class JSONResponse(HttpResponse):
-    """
-    An HttpResponse that renders its content into JSON.
-    """
-    def __init__(self, data, **kwargs):
-        content = JSONRenderer().render(data)
-        kwargs['content_type'] = 'application/json'
-        super(JSONResponse, self).__init__(content, **kwargs)
-
-
-@csrf_exempt
+@api_view(['GET', 'POST'])
 def repo_list(request):
     """
-    List all code snippets, or create a new snippet.
+    List all repos, or create a new repo.
     """
     if request.method == 'GET':
         repos = Repo.objects.all()
         serializer = RepoSerializer(repos, many=True)
-        return JSONResponse(serializer.data)
+        return Response(serializer.data)
 
     elif request.method == 'POST':
-        try:
-            data = JSONParser().parse(request)
-        except:
-            return JSONResponse({'error': 'Invalid JSON'}, status=400)
-
-        serializer = RepoSerializer(data=data)
+        serializer = RepoSerializer(data=request.data)
         if serializer.is_valid():
             repo = serializer.create(serializer.validated_data)
 
             try:
                 repo.download()
             except Exception as e:
-                return JSONResponse({'error': str(e)}, status=400)
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             # TODO add logger
             print("Created Repo from POST...")
@@ -49,13 +37,11 @@ def repo_list(request):
             print(repo.revision)
 
             # If using celery change this to 202
-            return JSONResponse(serializer.data, status=201)
-        return JSONResponse(serializer.errors, status=400)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    else:
-        return HttpResponse(status=405)
 
-@csrf_exempt
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def repo_detail(request, id):
     """
     Retrieve, update or delete a code snippet.
@@ -64,28 +50,25 @@ def repo_detail(request, id):
         repo = Repo.objects.get(id=id)
     except ValueError:
         # Not a valid for of a UUID
-        return HttpResponse(status=404)
+        return Response({'error': 'Not valid id'}, status=status.HTTP_404_NOT_FOUND)
     except Repo.DoesNotExist:
+        print("here")
         # Repo does not exists
-        return HttpResponse(status=404)
+        return Response({'error': 'Rescource does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = RepoSerializer(repo)
-        return JSONResponse(serializer.data)
+        return Response(serializer.data)
 
     elif request.method == 'PUT':
-        try:
-            data = JSONParser().parse(request)
-        except:
-            return JSONResponse({'error': 'Invalid JSON'}, status=400)
-
         # keep old settings.
         old_branch = repo.branch
         old_revision = repo.revision
-        serializer = RepoSerializer(repo, data=data)
+        serializer = RepoSerializer(repo, data=request.data)
         if serializer.is_valid():
             if serializer.validated_data['url'] != repo.url:
-                return JSONResponse({'error': 'Cannot change url. Please use Post to create a new resource.'}, status=400)
+                return Response({'error': 'Cannot change url. Please use Post to create a new resource.'},
+                                status=status.HTTP_400_BAD_REQUEST)
             repo = serializer.save()
             try:
                 repo.update()
@@ -94,14 +77,11 @@ def repo_detail(request, id):
                 repo.branch = old_branch
                 repo.revision = old_revision
                 repo.save()
-                return JSONResponse({'error': str(e)}, status=400)
-            return JSONResponse(serializer.data, status=200)
-        return JSONResponse(serializer.errors, status=400)
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         repo.remove()
         repo.delete()
-        return HttpResponse(status=204)
-
-    else:
-        return HttpResponse(status=405)
+        return Response(status=status.HTTP_204_NO_CONTENT)
