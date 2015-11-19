@@ -61,6 +61,8 @@ class RepoTestCase(TestCase):
 
 class RepoAPITestCase(APITestCase):
     # Probably should be using a fixture of some sort.
+
+    # Test POST
     def test_post(self):
         url = "/repos/"
         data = {'url': 'https://github.com/rjor2/syntrogi', 'name': 'testrepo'}
@@ -112,6 +114,7 @@ class RepoAPITestCase(APITestCase):
         data = JSONParser().parse(stream)
         self.assertIn('error', data)
 
+    # Test GET
     def test_get(self):
         self.test_post()
         repo = Repo.objects.get(name="testrepo")
@@ -126,12 +129,34 @@ class RepoAPITestCase(APITestCase):
         self.assertIn('revision', data)
         # self.assertIn('stats', data)
 
+    # Test DELETE
     def test_delete(self):
         self.test_post()
         repo = Repo.objects.get(name="testrepo")
         url = "/repos/%s/" %repo.id
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    # Test PUT
+    def test_put(self):
+        repo = Repo.objects.create(name="testrepo", url="https://github.com/rjor2/syntrogi")
+        repo.download()
+        url = "/repos/%s/" %repo.id
+        data = {'url': repo.url, 'branch': 'dev'}
+        response = self.client.put(url, data, format='json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Repo.objects.get().branch, 'dev')
+
+    def test_put_with_incorrect_branch(self):
+        repo = Repo.objects.create(name="testrepo2", url="https://github.com/rjor2/syntrogi")
+        repo.download()
+        url = "/repos/%s/" %repo.id
+        data = {'url': repo.url, 'branch': 'made_up_branch'}
+        response = self.client.put(url, data, format='json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Repo.objects.get().branch, repo.branch)
 
     def tearDown(self):
         try:

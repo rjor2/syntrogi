@@ -51,6 +51,18 @@ class Repo(models.Model):
         self.downloaded = True
         self.save()
 
+    def update(self):
+        r = git.Repo('/repos/%s' %(self.id))
+        try:
+            r.git.checkout(self.branch)
+        except:
+            raise Exception('Branch does not exist.')
+        try:
+            r.head.reset(self.revision)
+        except:
+            raise Exception('Revision does not exist.')
+
+
     def remove(self):
         """
         Remove the source code of the repo

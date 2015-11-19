@@ -40,7 +40,6 @@ def repo_list(request):
             try:
                 repo.download()
             except Exception as e:
-                print("ERROR %s" %e)
                 return JSONResponse({'error': str(e)}, status=400)
 
             # TODO add logger
@@ -49,15 +48,18 @@ def repo_list(request):
             print(repo.branch)
             print(repo.revision)
 
+            # If using celery change this to 202
             return JSONResponse(serializer.data, status=201)
         return JSONResponse(serializer.errors, status=400)
+
+    else:
+        return HttpResponse(status=405)
 
 @csrf_exempt
 def repo_detail(request, id):
     """
     Retrieve, update or delete a code snippet.
     """
-    print(id)
     try:
         repo = Repo.objects.get(id=id)
     except ValueError:
@@ -71,7 +73,35 @@ def repo_detail(request, id):
         serializer = RepoSerializer(repo)
         return JSONResponse(serializer.data)
 
+    elif request.method == 'PUT':
+        try:
+            data = JSONParser().parse(request)
+        except:
+            return JSONResponse({'error': 'Invalid JSON'}, status=400)
+
+        # keep old settings.
+        old_branch = repo.branch
+        old_revision = repo.revision
+        serializer = RepoSerializer(repo, data=data)
+        if serializer.is_valid():
+            if serializer.validated_data['url'] != repo.url:
+                return JSONResponse({'error': 'Cannot change url. Please use Post to create a new resource.'}, status=400)
+            repo = serializer.save()
+            try:
+                repo.update()
+            except Exception as e:
+                # put back old settings.
+                repo.branch = old_branch
+                repo.revision = old_revision
+                repo.save()
+                return JSONResponse({'error': str(e)}, status=400)
+            return JSONResponse(serializer.data, status=200)
+        return JSONResponse(serializer.errors, status=400)
+
     elif request.method == 'DELETE':
         repo.remove()
         repo.delete()
         return HttpResponse(status=204)
+
+    else:
+        return HttpResponse(status=405)

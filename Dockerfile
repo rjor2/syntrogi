@@ -1,4 +1,4 @@
-# Just Trying to get free testing from Docker. Was tring to get a full user test but was finding it diffucult to run
+# Just Trying to get free testing from DockerHUB. Was tring to get a full user test but was finding it difficult to run
 # docker or vagrant on docker itself. see privileged more in docker...
 
 FROM django
@@ -18,7 +18,7 @@ ENV PYTHONUNBUFFERED 1
 # Add code
 RUN mkdir /code
 ADD . /code
-WORKDIR /code
+WORKDIR /code/webapp
 
 # Run Tests
 RUN python manage.py test
