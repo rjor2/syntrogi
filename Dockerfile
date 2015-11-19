@@ -24,7 +24,7 @@ ENV DB_PORT 5432
 # Add code
 RUN mkdir /code
 ADD . /code
-WORKDIR /code
+WORKDIR /code/webapp
 
 # Run Tests
 RUN python manage.py test

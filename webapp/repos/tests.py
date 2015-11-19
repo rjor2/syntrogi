@@ -59,6 +59,12 @@ class RepoTestCase(TestCase):
         repo.remove()
         self.assertEqual(True, True)
 
+    def test_update(self):
+        repo = Repo.objects.get(name="testrepo")
+        repo.download()
+        repo.update()
+        self.assertEqual(True, True)
+
 class RepoAPITestCase(APITestCase):
     # Probably should be using a fixture of some sort.
 

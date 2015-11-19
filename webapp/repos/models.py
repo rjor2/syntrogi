@@ -2,7 +2,7 @@ import uuid
 import git
 from django.db import models
 import shutil
-
+import subprocess
 import logging
 
 logger = logging.getLogger('default')
@@ -91,16 +91,27 @@ class Repo(models.Model):
         # TODO see if we can use git.Repo to remove this. or run an re over the file name.
         # r = git.Repo(self.url, '/repos/%s' % self.id)
         try:
+            print(self.id)
             shutil.rmtree("/repos/%s" %self.id)
         except FileNotFoundError:
             logger.debug("Repo: %s not there" %self.id)
-        except:
-            logger.warn("Couldn't remove Repo: %s from file system" %self.id)
+        except OSError:
+            # GitPython keeps some files open so remove will fail when testing :( (known bug)
+            # Need to wait for process to finish before can delete file
+            logger.warn("Couldn't remove repo directory")
+
         logger.info("Removed: id:%s url:%s branch:%s revision:%s" %(self.id, self.url, self.branch, self.revision))
 
     def update_stats(self):
-        r = git.Repo('/repos/%s' %(self.id))
-        self.files = r.commit().stats.total['files']
-        self.lines = r.commit().stats.total['lines']
-        self.deletions = r.commit().stats.total['deletions']
-        self.insertions = r.commit().stats.total['insertions']
+        pass
+        # r = git.Repo('/repos/%s' %(self.id))
+        #
+        # self.files = r.head.commit.stats.total['files']
+        # # print(self.files)
+        # # print(type(self.files))
+        # self.lines = r.head.commit.stats.total['lines']
+        # self.deletions = r.head.commit.stats.total['deletions']
+        # self.insertions = r.head.commit.stats.total['insertions']
+
+    def change_branch(self, branch):
+        subprocess.Popen("git --git-dir='/repos/%s/.git' checkout %s" %(self.id, branch))
