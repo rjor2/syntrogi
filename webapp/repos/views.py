@@ -1,26 +1,22 @@
-from django.http import HttpResponse
 from rest_framework import status
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
-from rest_framework.decorators import api_view
+
+from rest_framework.views import APIView
+from django.http import Http404
 from rest_framework.response import Response
 
 from .models import Repo
 from .serializers import RepoSerializer
 
-
-@api_view(['GET', 'POST'])
-def repo_list(request):
+class RepoList(APIView):
     """
     List all repos, or create a new repo.
     """
-    if request.method == 'GET':
+    def get(self, request, format=None):
         repos = Repo.objects.all()
         serializer = RepoSerializer(repos, many=True)
         return Response(serializer.data)
 
-    elif request.method == 'POST':
+    def post(self, request, format=None):
         serializer = RepoSerializer(data=request.data)
         if serializer.is_valid():
             repo = serializer.create(serializer.validated_data)
@@ -41,27 +37,29 @@ def repo_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'POST', 'PUT', 'DELETE'])
-def repo_detail(request, id):
+class RepoDetail(APIView):
     """
     Retrieve, update or delete a code snippet.
     """
-    try:
-        repo = Repo.objects.get(id=id)
-    except ValueError:
-        # Not a valid for of a UUID
-        return Response({'error': 'Not valid id'}, status=status.HTTP_404_NOT_FOUND)
-    except Repo.DoesNotExist:
-        print("here")
-        # Repo does not exists
-        return Response({'error': 'Rescource does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-    if request.method == 'GET':
+    def get_object(self, id):
+        try:
+            return Repo.objects.get(id=id)
+        except ValueError:
+            # Incorrect formate for uuid
+            raise Http404
+        except Repo.DoesNotExist:
+            # Repo does not exists
+            raise Http404
+
+    def get(self, request, id, format=None):
+        repo = self.get_object(id)
         serializer = RepoSerializer(repo)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
+    def put(self, request, id, format=None):
         # keep old settings.
+        repo = self.get_object(id)
         old_branch = repo.branch
         old_revision = repo.revision
         serializer = RepoSerializer(repo, data=request.data)
@@ -81,7 +79,8 @@ def repo_detail(request, id):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
+    def delete(self, request, id, format=None):
+        repo = self.get_object(id)
         repo.remove()
         repo.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
