@@ -1,20 +1,23 @@
 from rest_framework import status
-
-from rest_framework.views import APIView
-from django.http import Http404
+from rest_framework import mixins
+from rest_framework import generics
 from rest_framework.response import Response
 
 from .models import Repo
 from .serializers import RepoSerializer
 
-class RepoList(APIView):
+class RepoList(mixins.ListModelMixin,
+               mixins.CreateModelMixin,
+               generics.GenericAPIView):
     """
     List all repos, or create a new repo.
     """
-    def get(self, request, format=None):
-        repos = Repo.objects.all()
-        serializer = RepoSerializer(repos, many=True)
-        return Response(serializer.data)
+
+    queryset = Repo.objects.all()
+    serializer_class = RepoSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     def post(self, request, format=None):
         serializer = RepoSerializer(data=request.data)
@@ -37,29 +40,24 @@ class RepoList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RepoDetail(APIView):
+class RepoDetail(mixins.RetrieveModelMixin,
+                 mixins.UpdateModelMixin,
+                 mixins.DestroyModelMixin,
+                 generics.GenericAPIView):
     """
     Retrieve, update or delete a code snippet.
     """
 
-    def get_object(self, id):
-        try:
-            return Repo.objects.get(id=id)
-        except ValueError:
-            # Incorrect formate for uuid
-            raise Http404
-        except Repo.DoesNotExist:
-            # Repo does not exists
-            raise Http404
+    queryset = Repo.objects.all()
+    serializer_class = RepoSerializer#
+    lookup_field = 'id'
 
-    def get(self, request, id, format=None):
-        repo = self.get_object(id)
-        serializer = RepoSerializer(repo)
-        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
 
     def put(self, request, id, format=None):
         # keep old settings.
-        repo = self.get_object(id)
+        repo = self.get_object()
         old_branch = repo.branch
         old_revision = repo.revision
         serializer = RepoSerializer(repo, data=request.data)
@@ -80,7 +78,7 @@ class RepoDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id, format=None):
-        repo = self.get_object(id)
+        repo = self.get_object()
         repo.remove()
         repo.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
