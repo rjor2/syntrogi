@@ -76,7 +76,7 @@ class Repo(models.Model):
             logger.debug("%s Git Repo has no branch %s" %(self.id, self.branch))
             raise Exception('Branch does not exist.')
         try:
-            if self.branch:
+            if self.revision:
                 r.head.reset(self.revision)
         except:
             logger.debug("%s Git Repo has no revision %s" %(self.id, self.revision))

@@ -1,6 +1,5 @@
 webapp:
   container_name: my-webapp
-  # restart: always
   build: ./webapp/
   ports:
     - "80:80"
@@ -11,13 +10,11 @@ webapp:
     - db:db
   volumes:
     - ./webapp:/code
-    # - ./repos:/repos
+    - /repos:/repos
   env_file: .env
-   # command: /usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid www-data --gid www-data
 
 db:
   container_name: my-db
-  # restart: always
   image: postgres:latest
   ports:
     - "5432:5432"
