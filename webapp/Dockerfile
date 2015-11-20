@@ -36,6 +36,5 @@ WORKDIR /code
 RUN mkdir /var/log/django
 RUN touch /var/log/django/debug.log
 
-RUN python manage.py test
-
-CMD bash
+RUN chmod +x /code/docker-entrypoint.sh
+ENTRYPOINT ["/code/docker-entrypoint.sh"]
