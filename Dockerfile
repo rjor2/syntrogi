@@ -26,6 +26,10 @@ RUN mkdir /code
 ADD . /code
 WORKDIR /code/webapp
 
+# Logs for Django
+RUN mkdir /var/log/django
+RUN touch /var/log/django/debug.log
+
 # Run Tests
 RUN python manage.py test
 

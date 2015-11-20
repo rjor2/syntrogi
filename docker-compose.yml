@@ -3,27 +3,17 @@ webapp:
   # restart: always
   build: ./webapp/
   ports:
+    - "80:80"
+    - "433:433"
     - "8000:8000"
+    - "8080:8080"
   links:
     - db:db
   volumes:
-    - ./webapp/:/code
-    - ./repos:/repos
+    - ./webapp:/code
+    # - ./repos:/repos
   env_file: .env
    # command: /usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid www-data --gid www-data
-
-server:
-  container_name: my-server
-  # restart: always
-  build: ./server/
-  ports:
-    - "80:80"
-    - "433:433"
-  volumes_from:
-    - webapp
-  links:
-    - webapp:webapp
-  env_file: .env
 
 db:
   container_name: my-db
