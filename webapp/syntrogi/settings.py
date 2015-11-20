@@ -142,6 +142,7 @@ LOGGING = {
 MEDIA_ROOT = 'media'
 
 # for auto build on docker hub
-# note all tests will run in memory 
+# note all tests will run in memory
 if 'test' in sys.argv:
-    DATABASE_ENGINE = 'sqlite3'
+    print("TESTING changing to sqlite")
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
