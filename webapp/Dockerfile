@@ -14,6 +14,7 @@ ENV PYTHONUNBUFFERED 1
 
 # Add code
 RUN mkdir /code
+RUN mkdir /repos
 ADD . /code
 WORKDIR /code
 
