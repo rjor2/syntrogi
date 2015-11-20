@@ -13,7 +13,7 @@ import json
 
 class RepoTestCase(TestCase):
     def setUp(self):
-        Repo.objects.create(name="testrepo", url="https://github.com/rjor2/melosycn")
+        Repo.objects.create(name="testrepo", url="https://github.com/rjor2/syntrogi")
 
     def tearDown(self):
         repo = Repo.objects.get(name="testrepo")
@@ -59,9 +59,17 @@ class RepoTestCase(TestCase):
         repo.remove()
         self.assertEqual(True, True)
 
-    def test_update(self):
+    def test_update_branch(self):
         repo = Repo.objects.get(name="testrepo")
         repo.download()
+        repo.branch = 'dev'
+        repo.update()
+        self.assertEqual(True, True)
+
+    def test_update_revision(self):
+        repo = Repo.objects.get(name="testrepo")
+        repo.download()
+        repo.revision = '8bf352142817a650b379e818d6c1d00d6528de7c'
         repo.update()
         self.assertEqual(True, True)
 
@@ -155,7 +163,7 @@ class RepoAPITestCase(APITestCase):
         self.assertEqual(Repo.objects.get().branch, 'dev')
 
     def test_put_with_incorrect_branch(self):
-        repo = Repo.objects.create(name="testrepo2", url="https://github.com/rjor2/syntrogi")
+        repo = Repo.objects.create(name="testrepo", url="https://github.com/rjor2/syntrogi")
         repo.download()
         url = "/repos/%s/" %repo.id
         data = {'url': repo.url, 'branch': 'made_up_branch'}
@@ -166,7 +174,9 @@ class RepoAPITestCase(APITestCase):
 
     def tearDown(self):
         try:
-            repo = Repo.objects.get(name="testrepo")
-            repo.remove()
+            repos = Repo.objects.all()
+            for repo in repos:
+                repo.remove()
         except:
-            pass
+            print("ERROR")
+            print(repo.id)
